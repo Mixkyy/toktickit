@@ -7,13 +7,23 @@ type UiState = "idle" | "loading" | "success" | "error";
 export default function App() {
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   void categories;
 
   async function handleCheck() {
-    // TODO(Issue 4): set loading, call checkSystem(), then either
-    //   - success: store categories and show Online + the list, or
-    //   - error: show Offline + a useful message.
     setState("loading");
+    setErrorMessage("");
+
+    try {
+      // Call the checkSystem API function
+      await checkSystem();
+      // If it succeeds, update state to success
+      setState("success");
+    } catch (err: any) {
+      // If it fails, capture the error message and set state to error
+      setErrorMessage(err.message || "Failed to connect to the server.");
+      setState("error");
+    }
   }
 
   return (
@@ -23,10 +33,23 @@ export default function App() {
       </h1>
 
       <button className="btn btn-success" onClick={handleCheck} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "Check System"}
+        {state === "loading" ? "Loading…" : "[Check System]"}
       </button>
 
-      {/* TODO(Issue 4): render loading / success (Online + categories) / error (Offline) states. */}
+      {/* UI States rendering */}
+      <div className="mt-4">
+        {state === "loading" && <p className="text-muted">Checking...</p>}
+        {state === "success" && (
+          <div className="alert alert-success" role="alert">
+            System Status: Online
+          </div>
+        )}
+        {state === "error" && (
+          <div className="alert alert-danger" role="alert">
+            System Status: Error ({errorMessage})
+          </div>
+        )}
+      </div>
     </div>
   );
 }
