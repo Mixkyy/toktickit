@@ -9,19 +9,19 @@
 | #5 | feature/1-project-foundation | Approved |
 | #6 | feature/2-health-check | Approved |
 | #7 | feature/3-category-seed | Approved |
-| #9 | feature/4-category-list | [Pending] |
+| #8 | feature/4-category-list | [Pending] |
 
 Reviewer comment I received: 
 - Issue 1: "The project foundation is well set up! Verified React, Vite, and Bootstrap on the frontend, and Express with Prisma on the backend. The .gitignore and docs folders are properly placed according to the requirements. Approved!"
 - Issue 2: "The /api/health endpoint correctly returns a 200 status. The frontend UI handles the loading, online, and offline states perfectly when the button is clicked. Tests pass successfully. Approved!" 
 - Issue 3: "Code looks great! The Category schema is correct, and the seed.ts handles duplicates perfectly. Tested locally and it works. Approved!"
-- Issue 4: <...>
+- Issue 4: "Looks amazing! The categories show up perfectly on the frontend, and the backend handles the Prisma query just right. Tested locally and everything passes. Approved!"
 
-Pull Request I reviewed for my partner: 
+ How I responded: 
 - Issue 1: "Thanks for the help and the approval kub."
 - Issue 2: "Thanks for the review kub. I'll continue now." 
 - Issue 3: "Thank you for the review. I will be going on to the next part."
-- Issue 4: <...>
+- Issue 4: "Thank you for all your help kubbb <3"
 
 ## Pull Requests I reviewed for my partner
 - Issue 1: "Looks like an excellent setup for the project. Feel free to continue!"
