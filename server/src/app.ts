@@ -31,4 +31,30 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // TODO(Issue 4): implement the route here.
 // ---------------------------------------------------------------------------
 
+app.get("/api/categories", async (_req: Request, res: Response) => {
+  try {
+    // 1. Get the lazy database handle
+    const prisma = getPrisma();
+    
+    // 2. Fetch categories from PostgreSQL
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        id: 'asc', // Ensures predictable order by ID
+      },
+    });
+
+    // 3. Return the array of categories with a 200 OK status
+    res.status(200).json(categories);
+    
+  } catch (error) {
+    // 4. On failure, respond with 500 and a safe message (no internal details)
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
+
 export default app;
