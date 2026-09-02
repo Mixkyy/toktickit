@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { checkSystem, Category } from "./api.js";
+import { useRequester } from "./context/RequesterContext.js";
+import { RequesterSelection } from "./components/RequesterSelection.js";
+import { CreateTicket } from "./components/CreateTicket.js";
+
+import { Dashboard } from "./components/Dashboard.js";
 
 // UI states you must handle for Issue 4: idle, loading, success, error.
 type UiState = "idle" | "loading" | "success" | "error";
@@ -8,6 +13,13 @@ export default function App() {
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [showApp, setShowApp] = useState(false);
+  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+  const { selectedRequester } = useRequester();
+
+  if (!showApp) {
+    return <RequesterSelection onContinue={() => setShowApp(true)} />;
+  }
 
   async function handleCheck() {
     setState("loading");
@@ -36,15 +48,35 @@ export default function App() {
     }
   }
 
-  return (
-    <div className="container py-5" style={{ maxWidth: 640 }}>
-      <h1 className="h3 mb-4">
-        TokTickIT <span className="text-success">IT Service Desk</span>
-      </h1>
+  if (isCreatingTicket) {
+    return <CreateTicket onCancel={() => setIsCreatingTicket(false)} />;
+  }
 
-      <button className="btn btn-success" onClick={handleCheck} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "[Check System]"}
-      </button>
+  return (
+    <div className="container py-5" style={{ maxWidth: 960 }}>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h3 mb-0">
+          TokTickIT <span className="text-success">IT Service Desk</span>
+        </h1>
+        <div className="text-end">
+          <div className="small text-muted">Logged in as (Test):</div>
+          <strong>{selectedRequester?.name}</strong>
+          <div>
+            <button className="btn btn-link btn-sm p-0 text-decoration-none" onClick={() => setShowApp(false)}>
+              Change Requester
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <Dashboard onCreateTicket={() => setIsCreatingTicket(true)} />
+
+      <hr className="my-5" />
+      <h4 className="mb-3 text-muted">System Diagnostics</h4>
+      <div className="card shadow-sm border-0 bg-light p-4">
+        <button className="btn btn-outline-secondary mb-3" onClick={handleCheck} disabled={state === "loading"}>
+          {state === "loading" ? "Loading…" : "Run System Health Check"}
+        </button>
 
       {/* UI States rendering */}
       <div className="mt-4">
@@ -74,6 +106,7 @@ export default function App() {
             Unable to connect to TokTickIT API ({errorMessage})
           </div>
         )}
+      </div>
       </div>
     </div>
   );
