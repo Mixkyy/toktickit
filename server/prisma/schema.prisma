@@ -24,6 +24,7 @@ model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   createdAt DateTime @default(now())
+  tickets   Ticket[]
 }
 
 model RequesterUser {
@@ -32,4 +33,30 @@ model RequesterUser {
   email     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model RelatedSystem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id                Int      @id @default(autoincrement())
+  ticketNumber      String   @unique
+  requesterId       Int
+  categoryId        Int
+  relatedSystemId   Int
+  summary           String
+  description       String
+  requestedPriority String
+  currentStatus     String   @default("New")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  requester     RequesterUser @relation(fields: [requesterId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
 }

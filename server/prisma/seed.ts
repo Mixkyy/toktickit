@@ -30,6 +30,25 @@ async function main() {
     })
   }
   console.log('Requesters seeded successfully!')
+
+  const relatedSystems = [
+    'Email',
+    'Campus Wi-Fi',
+    'VPN',
+    'LEB2 App',
+    'Grade Submission App',
+    'Printer',
+    'Corporate Laptop',
+  ]
+
+  for (const name of relatedSystems) {
+    await prisma.relatedSystem.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    })
+  }
+  console.log('Related Systems seeded successfully!')
 }
 
 main()
