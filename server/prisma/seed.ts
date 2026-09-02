@@ -13,6 +13,23 @@ async function main() {
     })
   }
   console.log('Categories seeded successfully!')
+
+  const requesters = [
+    { name: 'Jennifer Anderson', email: 'jennifer.anderson@example.com', isActive: true },
+    { name: 'Michael Brown', email: 'michael.brown@example.com', isActive: true },
+    { name: 'Sarah Johnson', email: 'sarah.johnson@example.com', isActive: true },
+    { name: 'David Lee', email: 'david.lee@example.com', isActive: true },
+    { name: 'Inactive User', email: 'inactive@example.com', isActive: false },
+  ]
+
+  for (const req of requesters) {
+    await prisma.requesterUser.upsert({
+      where: { email: req.email },
+      update: {},
+      create: req,
+    })
+  }
+  console.log('Requesters seeded successfully!')
 }
 
 main()
