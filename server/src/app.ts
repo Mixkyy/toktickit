@@ -57,4 +57,77 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
   }
 });
 
+app.get("/api/requesters", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    const requesters = await prisma.requesterUser.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+    res.status(200).json(requesters);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to fetch requesters" });
+  }
+});
+
+app.get("/api/related-systems", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    const relatedSystems = await prisma.relatedSystem.findMany({
+      select: { id: true, name: true },
+      orderBy: { id: 'asc' },
+    });
+    res.status(200).json(relatedSystems);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to fetch related systems" });
+  }
+});
+
+app.post("/api/tickets", async (req: Request, res: Response) => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'];
+    if (!requesterIdStr) {
+      return res.status(401).json({ error: "Unauthorized: Missing X-Requester-Id header" });
+    }
+    const requesterId = parseInt(requesterIdStr as string, 10);
+    
+    const { categoryId, relatedSystemId, summary, description, requestedPriority } = req.body;
+
+    if (!categoryId || !relatedSystemId || !summary || !description || !requestedPriority) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const prisma = getPrisma();
+    
+    // Generate a unique ticket number (e.g., TKT-YYYY-MMDDHHMMSS or sequence)
+    const timestamp = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+    const ticketNumber = `TKT-${timestamp}`;
+
+    const newTicket = await prisma.ticket.create({
+      data: {
+        ticketNumber,
+        requesterId,
+        categoryId: parseInt(categoryId, 10),
+        relatedSystemId: parseInt(relatedSystemId, 10),
+        summary,
+        description,
+        requestedPriority,
+      },
+    });
+
+    res.status(201).json(newTicket);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to create ticket" });
+  }
+});
 export default app;

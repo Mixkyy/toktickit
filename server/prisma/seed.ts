@@ -13,6 +13,42 @@ async function main() {
     })
   }
   console.log('Categories seeded successfully!')
+
+  const requesters = [
+    { name: 'Jennifer Anderson', email: 'jennifer.anderson@example.com', isActive: true },
+    { name: 'Michael Brown', email: 'michael.brown@example.com', isActive: true },
+    { name: 'Sarah Johnson', email: 'sarah.johnson@example.com', isActive: true },
+    { name: 'David Lee', email: 'david.lee@example.com', isActive: true },
+    { name: 'Inactive User', email: 'inactive@example.com', isActive: false },
+  ]
+
+  for (const req of requesters) {
+    await prisma.requesterUser.upsert({
+      where: { email: req.email },
+      update: {},
+      create: req,
+    })
+  }
+  console.log('Requesters seeded successfully!')
+
+  const relatedSystems = [
+    'Email',
+    'Campus Wi-Fi',
+    'VPN',
+    'LEB2 App',
+    'Grade Submission App',
+    'Printer',
+    'Corporate Laptop',
+  ]
+
+  for (const name of relatedSystems) {
+    await prisma.relatedSystem.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    })
+  }
+  console.log('Related Systems seeded successfully!')
 }
 
 main()
