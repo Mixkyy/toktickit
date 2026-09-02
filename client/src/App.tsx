@@ -4,6 +4,8 @@ import { useRequester } from "./context/RequesterContext.js";
 import { RequesterSelection } from "./components/RequesterSelection.js";
 import { CreateTicket } from "./components/CreateTicket.js";
 
+import { Dashboard } from "./components/Dashboard.js";
+
 // UI states you must handle for Issue 4: idle, loading, success, error.
 type UiState = "idle" | "loading" | "success" | "error";
 
@@ -51,7 +53,7 @@ export default function App() {
   }
 
   return (
-    <div className="container py-5" style={{ maxWidth: 640 }}>
+    <div className="container py-5" style={{ maxWidth: 960 }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 mb-0">
           TokTickIT <span className="text-success">IT Service Desk</span>
@@ -67,17 +69,14 @@ export default function App() {
         </div>
       </div>
 
-      <div className="mb-4">
-        <button className="btn w-100" style={{ backgroundColor: '#006B3C', color: 'white', padding: '12px' }} onClick={() => setIsCreatingTicket(true)}>
-          + Create New IT Support Ticket
-        </button>
-      </div>
+      <Dashboard onCreateTicket={() => setIsCreatingTicket(true)} />
 
-      <hr className="my-4" />
-      <h4 className="mb-3">System Health Check</h4>
-      <button className="btn btn-outline-success" onClick={handleCheck} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "[Run Diagnostics]"}
-      </button>
+      <hr className="my-5" />
+      <h4 className="mb-3 text-muted">System Diagnostics</h4>
+      <div className="card shadow-sm border-0 bg-light p-4">
+        <button className="btn btn-outline-secondary mb-3" onClick={handleCheck} disabled={state === "loading"}>
+          {state === "loading" ? "Loading…" : "Run System Health Check"}
+        </button>
 
       {/* UI States rendering */}
       <div className="mt-4">
@@ -107,6 +106,7 @@ export default function App() {
             Unable to connect to TokTickIT API ({errorMessage})
           </div>
         )}
+      </div>
       </div>
     </div>
   );

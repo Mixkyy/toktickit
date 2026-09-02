@@ -130,4 +130,52 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to create ticket" });
   }
 });
+
+app.get("/api/tickets", async (req: Request, res: Response) => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'];
+    if (!requesterIdStr) {
+      return res.status(401).json({ error: "Unauthorized: Missing X-Requester-Id header" });
+    }
+    const requesterId = parseInt(requesterIdStr as string, 10);
+    
+    // We only return tickets that belong to the current requester
+    const where: any = { requesterId };
+    
+    // Status filter
+    if (req.query.status) {
+      where.currentStatus = String(req.query.status);
+    }
+    
+    // Category filter
+    if (req.query.categoryId) {
+      where.categoryId = parseInt(String(req.query.categoryId), 10);
+    }
+    
+    // Search filter (searches summary or ticketNumber)
+    if (req.query.search) {
+      const searchTerm = String(req.query.search);
+      where.OR = [
+        { summary: { contains: searchTerm, mode: 'insensitive' } },
+        { ticketNumber: { contains: searchTerm, mode: 'insensitive' } }
+      ];
+    }
+    
+    const prisma = getPrisma();
+    const tickets = await prisma.ticket.findMany({
+      where,
+      include: {
+        category: true,
+        relatedSystem: true,
+      },
+      orderBy: { createdAt: 'desc' } // Newest first
+    });
+    
+    res.status(200).json(tickets);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to fetch tickets" });
+  }
+});
+
 export default app;
