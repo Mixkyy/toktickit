@@ -12,7 +12,7 @@ interface Ticket {
   relatedSystem: { name: string };
 }
 
-export const Dashboard = ({ onCreateTicket }: { onCreateTicket: () => void }) => {
+export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: () => void, onViewTicket: (id: number) => void }) => {
   const { selectedRequester } = useRequester();
   
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -157,7 +157,7 @@ export const Dashboard = ({ onCreateTicket }: { onCreateTicket: () => void }) =>
                     </td>
                     <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <button className="btn btn-sm btn-outline-secondary">View</button>
+                      <button className="btn btn-sm btn-outline-secondary" onClick={() => onViewTicket(ticket.id)}>View</button>
                     </td>
                   </tr>
                 ))

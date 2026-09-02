@@ -5,6 +5,7 @@ import { RequesterSelection } from "./components/RequesterSelection.js";
 import { CreateTicket } from "./components/CreateTicket.js";
 
 import { Dashboard } from "./components/Dashboard.js";
+import { TicketDetail } from "./components/TicketDetail.js";
 
 // UI states you must handle for Issue 4: idle, loading, success, error.
 type UiState = "idle" | "loading" | "success" | "error";
@@ -15,6 +16,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showApp, setShowApp] = useState(false);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const { selectedRequester } = useRequester();
 
   if (!showApp) {
@@ -52,6 +54,12 @@ export default function App() {
     return <CreateTicket onCancel={() => setIsCreatingTicket(false)} />;
   }
 
+  if (selectedTicketId !== null) {
+    return <div className="container py-5" style={{ maxWidth: 960 }}>
+      <TicketDetail ticketId={selectedTicketId} onBack={() => setSelectedTicketId(null)} />
+    </div>;
+  }
+
   return (
     <div className="container py-5" style={{ maxWidth: 960 }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -69,7 +77,10 @@ export default function App() {
         </div>
       </div>
 
-      <Dashboard onCreateTicket={() => setIsCreatingTicket(true)} />
+      <Dashboard 
+        onCreateTicket={() => setIsCreatingTicket(true)} 
+        onViewTicket={(id) => setSelectedTicketId(id)}
+      />
 
       <hr className="my-5" />
       <h4 className="mb-3 text-muted">System Diagnostics</h4>
