@@ -21,6 +21,9 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
     requestedPriority: 'MEDIUM'
   });
 
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadFailures, setUploadFailures] = useState<{name: string, error: string}[]>([]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -42,6 +45,37 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
     fetchDropdowns();
   }, []);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 5) {
+      setErrors({ ...errors, attachments: 'Maximum 5 attachments allowed.' });
+      e.target.value = '';
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const invalidFile = files.find(f => !allowedTypes.includes(f.type));
+    if (invalidFile) {
+      setErrors({ ...errors, attachments: 'Invalid file type. Only JPG, PNG, WEBP, and PDF are allowed.' });
+      e.target.value = '';
+      return;
+    }
+    
+    const oversizedFile = files.find(f => f.size > 5 * 1024 * 1024);
+    if (oversizedFile) {
+      setErrors({ ...errors, attachments: 'File too large. Maximum size is 5MB.' });
+      e.target.value = '';
+      return;
+    }
+    
+    const newErrors = { ...errors };
+    delete newErrors.attachments;
+    setErrors(newErrors);
+    setSelectedFiles(files);
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.categoryId) newErrors.categoryId = 'Category is required';
@@ -49,6 +83,7 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
     if (!formData.summary.trim()) newErrors.summary = 'Summary is required';
     if (formData.summary.length > 100) newErrors.summary = 'Summary must be 100 characters or less';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (errors.attachments) newErrors.attachments = errors.attachments; // keep file error
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -59,6 +94,7 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setUploadFailures([]);
     try {
       const res = await fetch('http://localhost:3000/api/tickets', {
         method: 'POST',
@@ -72,6 +108,31 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
       if (!res.ok) throw new Error('Failed to create ticket');
       const data = await res.json();
       
+      const failures: {name: string, error: string}[] = [];
+      if (selectedFiles.length > 0) {
+        for (const file of selectedFiles) {
+          const formDataObj = new FormData();
+          formDataObj.append('attachment', file);
+          
+          try {
+            const uploadRes = await fetch(`http://localhost:3000/api/tickets/${data.id}/attachments`, {
+              method: 'POST',
+              headers: {
+                'X-Requester-Id': selectedRequester?.id.toString() || ''
+              },
+              body: formDataObj
+            });
+            if (!uploadRes.ok) {
+              const errData = await uploadRes.json().catch(() => ({}));
+              failures.push({ name: file.name, error: errData.error || 'Upload failed' });
+            }
+          } catch (err) {
+            failures.push({ name: file.name, error: 'Network error' });
+          }
+        }
+      }
+      
+      setUploadFailures(failures);
       setSubmitSuccess(true);
       setTicketNumber(data.ticketNumber);
     } catch (err) {
@@ -91,11 +152,25 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
           <div className="alert mt-4 mb-4" style={{ backgroundColor: '#EAF6EF', color: '#0B7A46', display: 'inline-block', fontSize: '1.25rem' }}>
             <strong>Ticket #: {ticketNumber}</strong>
           </div>
+          
+          {uploadFailures.length > 0 && (
+            <div className="alert alert-warning text-start mx-auto" style={{ maxWidth: '500px' }}>
+              <strong>Note:</strong> The ticket was created, but some attachments failed to upload:
+              <ul className="mb-0 mt-2">
+                {uploadFailures.map((f, i) => (
+                  <li key={i}>{f.name}: {f.error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div>
             <button className="btn btn-outline-secondary me-2" onClick={onCancel}>Back to Home</button>
             <button className="btn" style={{ backgroundColor: '#006B3C', color: 'white' }} onClick={() => {
               setSubmitSuccess(false);
               setFormData({ ...formData, summary: '', description: '' });
+              setSelectedFiles([]);
+              setUploadFailures([]);
             }}>
               Create Another Ticket
             </button>
@@ -171,17 +246,32 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
             {errors.description && <div className="invalid-feedback">{errors.description}</div>}
           </div>
 
-          <div className="mb-4">
-            <label className="form-label fw-bold">Requested Priority <span className="text-danger">*</span></label>
-            <select 
-              className="form-select"
-              value={formData.requestedPriority}
-              onChange={e => setFormData({...formData, requestedPriority: e.target.value})}
-            >
-              <option value="LOW">Low - Not urgent, minor issue</option>
-              <option value="MEDIUM">Medium - Normal issue, affects work</option>
-              <option value="HIGH">High - Urgent, cannot work</option>
-            </select>
+          <div className="row mb-4">
+            <div className="col-md-6">
+              <label className="form-label fw-bold">Requested Priority <span className="text-danger">*</span></label>
+              <select 
+                className="form-select"
+                value={formData.requestedPriority}
+                onChange={e => setFormData({...formData, requestedPriority: e.target.value})}
+              >
+                <option value="LOW">Low - Not urgent, minor issue</option>
+                <option value="MEDIUM">Medium - Normal issue, affects work</option>
+                <option value="HIGH">High - Urgent, cannot work</option>
+              </select>
+            </div>
+            
+            <div className="col-md-6">
+              <label className="form-label fw-bold">Attachments</label>
+              <input 
+                type="file" 
+                className={`form-control ${errors.attachments ? 'is-invalid' : ''}`}
+                multiple 
+                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                onChange={handleFileChange}
+              />
+              <div className="form-text">Max 5 files. Max size 5MB each. Supported formats: JPG, PNG, WEBP, PDF.</div>
+              {errors.attachments && <div className="invalid-feedback">{errors.attachments}</div>}
+            </div>
           </div>
 
           <div className="d-flex justify-content-end gap-2 pt-3 border-top">
