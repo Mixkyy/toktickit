@@ -40,8 +40,9 @@ export const RequesterSelection = ({ onContinue }: { onContinue: () => void }) =
       <div className="card shadow-sm border-0" style={{ backgroundColor: '#F5F7F6' }}>
         <div className="card-body p-5">
           <div className="text-center mb-4">
-            <h2 style={{ color: '#006B3C' }}>Select Development Requester</h2>
-            <p className="text-muted">
+            <h1 style={{ color: '#006B3C', fontWeight: 800, marginBottom: '1rem' }}>TokTickIT</h1>
+            <h2 className="h4 text-secondary">Select Development Requester</h2>
+            <p className="text-muted mt-3">
               Choose a development requester to simulate the current requester context for Lab 2.
               This is for testing only and is not a login screen.
             </p>
