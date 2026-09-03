@@ -26,3 +26,28 @@ npm install
 # Install frontend dependencies
 cd ../client
 npm install
+```
+
+### 2. Environment Variables
+Copy `.env.example` to `.env` in the `server` directory and configure your PostgreSQL database credentials:
+```bash
+cp server/.env.example server/.env
+```
+
+### 3. Database Setup
+Initialize the database and run the Prisma seeds:
+```bash
+cd server
+npx prisma migrate dev
+npx prisma db seed
+```
+
+### 4. Running the App
+Start both the frontend and backend development servers:
+```bash
+# In the server directory:
+npm run dev
+
+# In a new terminal, in the client directory:
+npm run dev
+```
