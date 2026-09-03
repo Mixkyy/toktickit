@@ -9,22 +9,25 @@
 | [#19](https://github.com/Mixkyy/toktickit/pull/19) | 14-requester-context | Approved |
 | [#20](https://github.com/Mixkyy/toktickit/pull/20) | 15-ticket-creation | Approved |
 | [#21](https://github.com/Mixkyy/toktickit/pull/21) | 16-my-tickets | Approved |
-| [#26](https://github.com/Mixkyy/toktickit/pull/26) | lab2-staging | Approved |
+| [#25](https://github.com/Mixkyy/toktickit/pull/25) | 17-ticket-detail | Approved |
 
 Reviewer comment I received: 
-- Issue 2: "The Requester Context is set up correctly and the selection screen works great. Approved!"
-- Issue 3: "Prisma schema handles the models correctly, and the Create Ticket form successfully submits and updates the database. Approved!"
-- Issue 4: "Dashboard filtering by status and category works perfectly. The debounce search is a nice touch. Approved!"
-- Issue 5: "Ticket details load properly, and the attachment upload/download/remove logic functions exactly as specified. Soft delete with reason is working. Approved!"
+- PR #19: "Reviewed and approved! The RequesterUser Prisma model and migrations look solid. I verified that the seed file correctly sets up the active and inactive requesters, and the GET /api/requesters endpoint filters them properly. The Zen Green UI for the RequesterSelection component and the global state management look great. 👍"
+- PR #20: "Looks great! The Prisma schema updates and the new endpoints (GET /api/related-systems and POST /api/tickets) are solidly implemented with proper validation. The Zen Green UI for the CreateTicket form looks clean, and it's awesome that both API and UI tests are included. Approved! 👍"
+- PR #21: "Looks great! The dashboard UI is clean, and the filtering logic along with the tests look solid. Approved!"
+- PR #25: "Great work! The attachment upload/download API and multer integration look solid. Soft-delete and ownership protection are working perfectly. Approved!"
 
  How I responded: 
-- "Thanks for the review kub!" (applied to all)
+- PR #19: "Thanks for the review and approval kubbb <333"
+- PR #20: "Thank you kub <3"
+- PR #21: "thank you kubbb <33"
+- PR #25: "Thanks for the review kubb <3"
 
 ## Pull Requests I reviewed for my partner
-- Issue 2: "Verified the Context API setup. Looks good!"
-- Issue 3: "Ticket creation form is solid and validation works properly. Approved!"
-- Issue 4: "Tested the filters on the Dashboard, they correctly query the backend. Approved!"
-- Issue 5: "Uploaded a 5MB file and it correctly rejected it. Soft delete works. Great job!"
+- [#24](https://github.com/KaiDaoMuKrobb/toktickit/pull/24): "Looks good to me! The requester context and seed data are working as expected. Approved."
+- [#25](https://github.com/KaiDaoMuKrobb/toktickit/pull/25): "Awesome work on creating tickets. The form and API are working exactly as expected. Tests look good. Approved kubb."
+- [#26](https://github.com/KaiDaoMuKrobb/toktickit/pull/26): "Looks great! The ticket list, search, and pagination are all working exactly as expected. Tests pass. Approved."
+- [#27](https://github.com/KaiDaoMuKrobb/toktickit/pull/27): "Great work! The attachment upload/download API and multer integration look solid. Soft-delete and ownership protection are working perfectly. Approved kubbb <333"
 
 How my partner responded:
-- "Thanks for the review!" (applied to all)
+- "Thankyou<3" (applied to all)
