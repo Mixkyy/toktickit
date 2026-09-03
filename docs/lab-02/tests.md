@@ -1,49 +1,45 @@
-# Lab 2 Test Plan and Results
+# Lab 2 — Test Plan and Evidence
 
-## 1. Test Strategy
-Tests will be implemented across multiple layers:
-- Unit: Database models and utilities
-- API: Supertest integration tests for all endpoints
-- UI: Vitest component tests for React
-- E2E: Playwright flows
+All test files live under server/tests/lab-02/ and client/tests/lab-02/.
 
-## 2. Planned Tests
-| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final |
-|---|---|---|---|---|---|---|
-| API-01 | API | AC-01 | Create valid ticket | 201; one saved Ticket; number returned | `server/tests/lab-02/tickets.api.test.ts` | Pass |
-| API-02 | API | AC-03 | Fetch ticket belonging to another | 403 or 404 | `server/tests/lab-02/tickets.api.test.ts` | Pass |
-| UI-01 | UI | AC-02 | Visit My Tickets without context | Redirects to Selection | `client/src/tests/MyTickets.test.tsx` | Pass |
-| UI-02 | UI | AC-01 | Submit without Summary | Field message; API not called | `client/src/tests/CreateTicket.test.tsx` | Pass |
-| E2E-01 | E2E | AC-01, AC-05 | Complete responsive submission flow | Confirmation shows official number | `e2e/lab-02/create-ticket.spec.ts` | Pass |
+| # | Tool | Test | Result |
+|---|------|------|--------|
+| 1 | Vitest | RequesterSelection renders and sets context | Pass |
+| 2 | Vitest | CreateTicket validates inputs and handles submission | Pass |
+| 3 | Vitest | Dashboard filters by status and category | Pass |
+| 4 | Vitest | TicketDetail renders and handles attachment removal | Pass |
+| 5 | Supertest | POST /api/tickets/:id/attachments handles uploads correctly | Pass |
 
-## 3. Acceptance-Criterion Traceability
-- AC-01: API-01, UI-02, E2E-01
-- AC-02: UI-01
-- AC-03: API-02
-- AC-04: API (Attachment max size/count tests to be added)
-- AC-05: API (Soft removal tests to be added), E2E-01
+Paste your passing terminal output / screenshot below.
 
-## 4. Responsive and Visual Checklist
-- [ ] Desktop layout verified
-- [ ] Tablet layout verified
-- [ ] Mobile layout verified
-- [ ] Zen Green theme applied correctly
-- [ ] No clipped labels or overlapping buttons
+**Backend API Tests (Supertest):**
 
-## 5. Test Commands
-```bash
-# Server tests
-npm run test --prefix server
+```text
+ RUN  v2.1.9 server
 
-# Client tests
-npm run test --prefix client
+ ✓ tests/lab-02/attachments.api.test.ts (5)
+   ✓ uploads an attachment successfully
+   ✓ rejects upload for a non-owner requester
+   ✓ rejects upload of invalid file type
+   ✓ soft-removes an attachment
+   ✓ rejects soft-remove if reason is missing
 
-# E2E tests
-npx playwright test
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
 ```
 
-## 6. Final Results
-(To be updated upon completion)
+**Frontend Tests (Vitest):**
 
-## 7. Known Limitations or Deferred Tests
-None currently.
+```text
+ RUN  v2.1.9 client
+
+ ✓ tests/lab-02/RequesterSelection.test.tsx (2 tests)
+ ✓ tests/lab-02/CreateTicket.test.tsx (2 tests)
+ ✓ tests/lab-02/TicketDetail.test.tsx (2 tests)
+ ✓ tests/lab-02/Dashboard.test.tsx (2 tests)
+   ✓ Dashboard Component Filtering > renders table and calls API with status filter
+   ✓ Dashboard Component Filtering > calls API with search term
+
+ Test Files  4 passed (4)
+      Tests  8 passed (8)
+```

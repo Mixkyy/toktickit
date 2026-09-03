@@ -1,28 +1,26 @@
-# Lab 2 UI Specification: Zen Green Theme
+# Lab 2 UI Specification
 
 ## Color Tokens
-- **Primary green:** `#006B3C` (app header, primary actions, strong emphasis)
-- **Secondary green:** `#0B7A46` (active tabs, focus accents, links, hover states)
-- **Pale green:** `#EAF6EF` (selected, success, subtle section emphasis)
-- **Page background:** `#F5F7F6` (near-white)
-- **Surface / cards:** White with subtle border and restrained shadow
-- **Text:** Dark charcoal-green (not pure black)
-- **Editable field:** White background with clear neutral border
-- **Read-only field:** Soft gray-green or warm ivory shading
-- **Error:** Dark red text and border
-- **Warning:** Amber callout or badge
-- **Success:** Green confirmation
+- Primary Green: `#006B3C` (Headers, Primary buttons)
+- Secondary Green: `#0B7A46` (Hover states, links)
+- Pale Green: `#EAF6EF` (Success states, highlights)
+- Page Background: `#F5F7F6`
+- Error Red: Dark red borders and text for form validation.
+- Text: Dark charcoal-green for comfortable reading.
 
-## Typography and Spacing
-- Use a clean, modern sans-serif font (e.g., Inter or Roboto).
-- Labels appear above controls and use consistent font weight and spacing.
+## Typography and Controls
+- Fonts: System default sans-serif, using Bootstrap 5 sizing.
+- Editable Fields: White background, neutral borders. Focus indicator visible.
+- Read-only Fields: Soft gray-green shading to indicate disabled state.
+- Buttons: Standard padding, distinct hierarchy (solid Primary Green vs outline secondary).
 
-## Components
-- **Buttons:** Include visible text. Icons may support but not replace unclear text.
-- **Required Fields:** Show a red asterisk.
-- **Disabled Controls:** Visually distinct, cannot be activated.
-
-## Responsive Rules
-- **Desktop (≥ 992px):** Multi-column layout, centered content with maximum width.
+## Responsive Layouts
+- **Desktop (>=992px):** Multi-column layout (e.g., 3 columns for category/system/priority). Dashboard uses full data table.
 - **Tablet (768-991px):** Two-column layout where practical.
-- **Mobile (< 768px):** Fields stack vertically, buttons are touch-friendly, no horizontal scrolling.
+- **Mobile (<768px):** Fields stack vertically. Dashboard table converts to horizontal scroll or stacked cards. No clipping or overlap.
+
+## Component States
+- Loading: "Loading..." text or spinner centered on screen.
+- Empty List: "No tickets found matching your criteria." message displayed elegantly.
+- Validation: Red text immediately below the affected input field. Red asterisk for required fields.
+- Success: Green confirmation badge or alert.
