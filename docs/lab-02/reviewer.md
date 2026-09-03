@@ -1,15 +1,15 @@
 # Lab 2 — Peer Review Record
 
-**Author:** Panyakorn Lohaviboonsap — 67070503424 — GitHub: @Mixkyy
-**Peer reviewer:** Pattarawadee Thanapoomthakul — 67070503435 — GitHub: @KaiDaoMuKrobb
+**Author:** Panyakorn Lohaviboonsap — 67070503424 — GitHub: [@Mixkyy](https://github.com/Mixkyy)
+**Peer reviewer:** Pattarawadee Thanapoomthakul — 67070503435 — GitHub: [@KaiDaoMuKrobb](https://github.com/KaiDaoMuKrobb)
 
 ## Pull Requests I authored (reviewed by my partner)
 | PR | Branch | Reviewer verdict |
 |----|--------|------------------|
-| #19 | 14-requester-context | Approved |
-| #20 | 15-ticket-creation | Approved |
-| #21 | 16-my-tickets | Approved |
-| #26 | lab2-staging | Approved |
+| [#19](https://github.com/Mixkyy/toktickit/pull/19) | 14-requester-context | Approved |
+| [#20](https://github.com/Mixkyy/toktickit/pull/20) | 15-ticket-creation | Approved |
+| [#21](https://github.com/Mixkyy/toktickit/pull/21) | 16-my-tickets | Approved |
+| [#26](https://github.com/Mixkyy/toktickit/pull/26) | lab2-staging | Approved |
 
 Reviewer comment I received: 
 - Issue 2: "The Requester Context is set up correctly and the selection screen works great. Approved!"
@@ -25,3 +25,6 @@ Reviewer comment I received:
 - Issue 3: "Ticket creation form is solid and validation works properly. Approved!"
 - Issue 4: "Tested the filters on the Dashboard, they correctly query the backend. Approved!"
 - Issue 5: "Uploaded a 5MB file and it correctly rejected it. Soft delete works. Great job!"
+
+How my partner responded:
+- "Thanks for the review!" (applied to all)
