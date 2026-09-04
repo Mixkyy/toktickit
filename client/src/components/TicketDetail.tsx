@@ -6,6 +6,8 @@ interface Attachment {
   fileName: string;
   fileSize: number;
   createdAt: string;
+  isRemoved: boolean;
+  removedReason?: string;
 }
 
 interface TicketDetailData {
@@ -181,14 +183,27 @@ export function TicketDetail({ ticketId, onBack }: { ticketId: number, onBack: (
         {ticket.attachments.length > 0 ? (
           <ul className="list-group mb-4">
             {ticket.attachments.map(att => (
-              <li key={att.id} className="list-group-item d-flex justify-content-between align-items-center bg-light border-0 mb-2 rounded">
+              <li key={att.id} className={`list-group-item d-flex justify-content-between align-items-center border-0 mb-2 rounded ${att.isRemoved ? 'bg-white border' : 'bg-light'}`}>
                 <div>
-                  <strong>{att.fileName}</strong> <br/>
-                  <small className="text-muted">{(att.fileSize / 1024).toFixed(1)} KB &bull; Uploaded {new Date(att.createdAt).toLocaleDateString()}</small>
+                  <strong className={att.isRemoved ? 'text-decoration-line-through text-muted' : ''}>{att.fileName}</strong> 
+                  {att.isRemoved && <span className="badge bg-danger ms-2">Removed</span>}
+                  <br/>
+                  <small className="text-muted">
+                    {(att.fileSize / 1024).toFixed(1)} KB &bull; Uploaded {new Date(att.createdAt).toLocaleDateString()}
+                    {att.isRemoved && att.removedReason && (
+                      <span className="fst-italic d-block mt-1 text-danger">Reason: {att.removedReason}</span>
+                    )}
+                  </small>
                 </div>
                 <div>
-                  <button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleDownload(att.id, att.fileName)}>Download</button>
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleRemove(att.id)}>Remove</button>
+                  {!att.isRemoved ? (
+                    <>
+                      <button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleDownload(att.id, att.fileName)}>Download</button>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleRemove(att.id)}>Remove</button>
+                    </>
+                  ) : (
+                    <button className="btn btn-sm btn-secondary" disabled>Unavailable</button>
+                  )}
                 </div>
               </li>
             ))}
@@ -197,7 +212,7 @@ export function TicketDetail({ ticketId, onBack }: { ticketId: number, onBack: (
           <p className="text-muted fst-italic">No active attachments for this ticket.</p>
         )}
 
-        {ticket.attachments.length < 5 && (
+        {ticket.attachments.filter(a => !a.isRemoved).length < 5 && (
           <div className="p-3 rounded border" style={{ backgroundColor: '#F5F7F6' }}>
             <label className="form-label fw-bold small text-muted">Upload New Attachment</label>
             <input 
