@@ -229,7 +229,6 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
         category: true,
         relatedSystem: true,
         attachments: {
-          where: { isRemoved: false },
           orderBy: { createdAt: 'desc' }
         }
       }
