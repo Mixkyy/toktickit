@@ -182,9 +182,18 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
 
   return (
     <div className="card shadow-sm border-0 mt-4">
-      <div className="card-header bg-white border-0 pt-4 pb-0">
-        <h2 style={{ color: '#006B3C' }}>Create IT Support Ticket</h2>
-        <p className="text-muted">Please provide details about your issue below.</p>
+      <div className="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-start">
+        <div>
+          <h2 style={{ color: '#006B3C' }}>Create IT Support Ticket</h2>
+          <p className="text-muted mb-0">Please provide details about your issue below.</p>
+        </div>
+        {selectedRequester && (
+          <div className="text-end">
+            <span className="badge" style={{ backgroundColor: '#EAF6EF', color: '#0B7A46', fontSize: '0.9rem', padding: '0.5rem 0.8rem', border: '1px solid #c3e6cb' }}>
+              Requester: {selectedRequester.name}
+            </span>
+          </div>
+        )}
       </div>
       <div className="card-body p-4">
         {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
