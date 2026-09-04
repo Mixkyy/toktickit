@@ -25,6 +25,12 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Sorting and Pagination State
+  const [sortField, setSortField] = useState<keyof Ticket>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   useEffect(() => {
     // Fetch categories for the filter dropdown
     fetch('http://localhost:3000/api/categories')
@@ -65,6 +71,31 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
     
     return () => clearTimeout(timeoutId);
   }, [statusFilter, categoryFilter, searchTerm, selectedRequester]);
+
+  // Derived state for sorting and pagination
+  const sortedTickets = [...tickets].sort((a, b) => {
+    let aVal: any = a[sortField];
+    let bVal: any = b[sortField];
+    if (sortField === 'category') aVal = a.category?.name || '';
+    if (sortField === 'category') bVal = b.category?.name || '';
+    
+    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedTickets.length / itemsPerPage));
+  const currentTickets = sortedTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleSort = (field: keyof Ticket | 'category') => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field as keyof Ticket);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1); // Reset to first page on sort
+  };
 
   return (
     <div className="card shadow-sm border-0 mt-4">
@@ -131,11 +162,21 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
           <table className="table table-hover align-middle">
             <thead className="table-light">
               <tr>
-                <th>Ticket #</th>
-                <th>Summary</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Date Created</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('ticketNumber')}>
+                  Ticket # {sortField === 'ticketNumber' && (sortOrder === 'asc' ? '▲' : '▼')}
+                </th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('summary')}>
+                  Summary {sortField === 'summary' && (sortOrder === 'asc' ? '▲' : '▼')}
+                </th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('category')}>
+                  Category {sortField === 'category' && (sortOrder === 'asc' ? '▲' : '▼')}
+                </th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('currentStatus')}>
+                  Status {sortField === 'currentStatus' && (sortOrder === 'asc' ? '▲' : '▼')}
+                </th>
+                <th style={{ cursor: 'pointer' }} onClick={() => handleSort('createdAt')}>
+                  Date Created {sortField === 'createdAt' && (sortOrder === 'asc' ? '▲' : '▼')}
+                </th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -145,7 +186,7 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
               ) : tickets.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-4 text-muted">No tickets found matching your criteria.</td></tr>
               ) : (
-                tickets.map(ticket => (
+                currentTickets.map(ticket => (
                   <tr key={ticket.id}>
                     <td><strong>{ticket.ticketNumber}</strong></td>
                     <td>{ticket.summary}</td>
@@ -165,6 +206,30 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {!loading && tickets.length > 0 && (
+          <div className="d-flex justify-content-between align-items-center mt-3">
+            <div className="text-muted small">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, tickets.length)} of {tickets.length} tickets
+            </div>
+            <nav>
+              <ul className="pagination pagination-sm mb-0">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>&lt; Previous</button>
+                </li>
+                {[...Array(totalPages)].map((_, i) => (
+                  <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                    <button className="page-link" onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+                  </li>
+                ))}
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>Next &gt;</button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        )}
       </div>
     </div>
   );
