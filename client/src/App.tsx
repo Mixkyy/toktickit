@@ -6,6 +6,7 @@ import { CreateTicket } from "./components/CreateTicket.js";
 
 import { Dashboard } from "./components/Dashboard.js";
 import { TicketDetail } from "./components/TicketDetail.js";
+import { TicketQueue } from "./components/TicketQueue.js";
 
 // UI states you must handle for Issue 4: idle, loading, success, error.
 type UiState = "idle" | "loading" | "success" | "error";
@@ -17,6 +18,7 @@ export default function App() {
   const [showApp, setShowApp] = useState(false);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [viewQueue, setViewQueue] = useState(false);
   const { selectedRequester } = useRequester();
 
   if (!showApp) {
@@ -70,6 +72,9 @@ export default function App() {
           <div className="small text-muted">Logged in as (Test):</div>
           <strong>{selectedRequester?.name}</strong>
           <div>
+            <button className="btn btn-link btn-sm p-0 text-decoration-none me-3" onClick={() => setViewQueue(!viewQueue)}>
+              {viewQueue ? "Switch to Dashboard" : "Switch to IT Staff Queue"}
+            </button>
             <button className="btn btn-link btn-sm p-0 text-decoration-none" onClick={() => setShowApp(false)}>
               Change Requester
             </button>
@@ -77,10 +82,14 @@ export default function App() {
         </div>
       </div>
 
-      <Dashboard 
-        onCreateTicket={() => setIsCreatingTicket(true)} 
-        onViewTicket={(id) => setSelectedTicketId(id)}
-      />
+      {viewQueue ? (
+        <TicketQueue onViewTicket={(id) => setSelectedTicketId(id)} />
+      ) : (
+        <Dashboard 
+          onCreateTicket={() => setIsCreatingTicket(true)} 
+          onViewTicket={(id) => setSelectedTicketId(id)}
+        />
+      )}
 
       <hr className="my-5" />
       <h4 className="mb-3 text-muted">System Diagnostics</h4>

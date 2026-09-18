@@ -6,6 +6,7 @@ import path from "path";
 import fs from "fs";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
+import staffRouter from "./routes/staff.js";
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -51,6 +52,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/auth', authRouter);
+app.use('/api/staff', staffRouter);
 
 
 // ---------------------------------------------------------------------------
