@@ -58,7 +58,7 @@ export default function App() {
 
   if (selectedTicketId !== null) {
     return <div className="container py-5" style={{ maxWidth: 960 }}>
-      <TicketDetail ticketId={selectedTicketId} onBack={() => setSelectedTicketId(null)} />
+      <TicketDetail ticketId={selectedTicketId} isStaff={viewQueue} onBack={() => setSelectedTicketId(null)} />
     </div>;
   }
 

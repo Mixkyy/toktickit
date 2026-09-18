@@ -70,4 +70,41 @@ router.get('/tickets', async (req: Request, res: Response) => {
   }
 });
 
+router.put('/tickets/:id', async (req: Request, res: Response) => {
+  const ticketId = parseInt(req.params.id);
+  const { ownerId, currentStatus, itPriority } = req.body;
+
+  if (isNaN(ticketId)) {
+    return res.status(400).json({ error: 'Invalid ticket ID' });
+  }
+
+  try {
+    const dataToUpdate: Prisma.TicketUpdateInput = {};
+
+    if (ownerId !== undefined) {
+      dataToUpdate.owner = ownerId === null ? { disconnect: true } : { connect: { id: parseInt(ownerId) } };
+    }
+    if (currentStatus !== undefined) {
+      dataToUpdate.currentStatus = String(currentStatus);
+    }
+    if (itPriority !== undefined) {
+      dataToUpdate.itPriority = String(itPriority);
+    }
+
+    const updatedTicket = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: dataToUpdate,
+      include: {
+        category: { select: { id: true, name: true } },
+        owner: { select: { id: true, name: true, email: true } },
+        requester: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    res.status(200).json(updatedTicket);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update ticket' });
+  }
+});
+
 export default router;
