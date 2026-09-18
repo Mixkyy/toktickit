@@ -11,14 +11,22 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Issue 3 — Create and seed IT request categories
-// Define a Category model with:
-//   id        Int      @id @default(autoincrement())
-//   name      String   @unique
-//   createdAt DateTime @default(now())
-// Then run:  npx prisma migrate dev --name init
-// TODO(Issue 3): add the Category model below.
+// Issue 36 — Lab 3 Authentication Foundation
 // ---------------------------------------------------------------------------
+
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+enum IT_Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 
 model Category {
   id        Int      @id @default(autoincrement())
@@ -27,13 +35,19 @@ model Category {
   tickets   Ticket[]
 }
 
-model RequesterUser {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  tickets   Ticket[]
+model User {
+  id                     Int      @id @default(autoincrement())
+  name                   String
+  email                  String   @unique
+  passwordHash           String
+  role                   Role     @default(REQUESTER)
+  isActive               Boolean  @default(true)
+  requiresPasswordChange Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  
+  ticketsSubmitted       Ticket[] @relation("TicketRequester")
+  ticketsOwned           Ticket[] @relation("TicketOwner")
+  comments               Comment[]
 }
 
 model RelatedSystem {
@@ -47,19 +61,23 @@ model Ticket {
   id                Int      @id @default(autoincrement())
   ticketNumber      String   @unique
   requesterId       Int
+  ownerId           Int?
   categoryId        Int
   relatedSystemId   Int
   summary           String
   description       String
   requestedPriority String
+  itPriority        IT_Priority?
   currentStatus     String   @default("New")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  requester     RequesterUser @relation(fields: [requesterId], references: [id])
+  requester     User          @relation("TicketRequester", fields: [requesterId], references: [id])
+  owner         User?         @relation("TicketOwner", fields: [ownerId], references: [id])
   category      Category      @relation(fields: [categoryId], references: [id])
   relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
   attachments   Attachment[]
+  comments      Comment[]
 }
 
 model Attachment {
@@ -74,4 +92,16 @@ model Attachment {
   createdAt     DateTime @default(now())
 
   ticket Ticket @relation(fields: [ticketId], references: [id])
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  authorId   Int
+  content    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  author User   @relation(fields: [authorId], references: [id])
 }

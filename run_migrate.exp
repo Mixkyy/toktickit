@@ -1,0 +1,7 @@
+#!/usr/bin/expect -f
+set timeout -1
+cd server
+spawn npx prisma migrate dev --create-only --name lab3_auth
+expect "Are you sure you want create this migration"
+send "y\r"
+expect eof
