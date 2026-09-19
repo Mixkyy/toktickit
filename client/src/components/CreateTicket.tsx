@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRequester } from '../context/RequesterContext.js';
+import { useAuth } from '../context/AuthContext';
 import { Category } from '../api.js';
 
 interface RelatedSystem {
@@ -8,7 +8,7 @@ interface RelatedSystem {
 }
 
 export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
-  const { selectedRequester } = useRequester();
+  const { user } = useAuth();
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
@@ -33,8 +33,8 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
     const fetchDropdowns = async () => {
       try {
         const [catRes, sysRes] = await Promise.all([
-          fetch('http://localhost:3000/api/categories'),
-          fetch('http://localhost:3000/api/related-systems')
+          fetch('/api/categories'),
+          fetch('/api/related-systems')
         ]);
         if (catRes.ok) setCategories(await catRes.json());
         if (sysRes.ok) setRelatedSystems(await sysRes.json());
@@ -96,11 +96,11 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
     setIsSubmitting(true);
     setUploadFailures([]);
     try {
-      const res = await fetch('http://localhost:3000/api/tickets', {
+      const res = await fetch('/api/tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Requester-Id': selectedRequester?.id.toString() || ''
+          'X-Requester-Id': user?.id.toString() || ''
         },
         body: JSON.stringify(formData)
       });
@@ -115,10 +115,10 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
           formDataObj.append('attachment', file);
           
           try {
-            const uploadRes = await fetch(`http://localhost:3000/api/tickets/${data.id}/attachments`, {
+            const uploadRes = await fetch(`/api/tickets/${data.id}/attachments`, {
               method: 'POST',
               headers: {
-                'X-Requester-Id': selectedRequester?.id.toString() || ''
+                'X-Requester-Id': user?.id.toString() || ''
               },
               body: formDataObj
             });
@@ -187,10 +187,10 @@ export const CreateTicket = ({ onCancel }: { onCancel: () => void }) => {
           <h2 style={{ color: '#006B3C' }}>Create IT Support Ticket</h2>
           <p className="text-muted mb-0">Please provide details about your issue below.</p>
         </div>
-        {selectedRequester && (
+        {user && (
           <div className="text-end">
             <span className="badge" style={{ backgroundColor: '#EAF6EF', color: '#0B7A46', fontSize: '0.9rem', padding: '0.5rem 0.8rem', border: '1px solid #c3e6cb' }}>
-              Requester: {selectedRequester.name}
+              Requester: {user.name}
             </span>
           </div>
         )}

@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 // Throwing on failure lets the UI show a single Offline/error state.
 export async function checkSystem() {
     // 1. Fetch the health check endpoint you built in Issue 2
-    const response = await fetch("http://localhost:3000/api/health");
+    const response = await fetch("/api/health");
     // 2. If the backend is down or returns an error, throw it so App.tsx can catch it
     if (!response.ok) {
         throw new Error("Failed to connect to TokTickIT API");

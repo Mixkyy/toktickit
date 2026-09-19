@@ -5,16 +5,16 @@ export const RequesterSelection = ({ onContinue }: { onContinue: () => void }) =
   const [requesters, setRequesters] = useState<Requester[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { selectedRequester, setSelectedRequester } = useRequester();
+  const { user, setSelectedRequester } = useRequester();
 
   useEffect(() => {
     const fetchRequesters = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/requesters');
+        const res = await fetch('/api/requesters');
         if (!res.ok) throw new Error('Failed to load requesters');
         const data = await res.json();
         setRequesters(data);
-        if (data.length > 0 && !selectedRequester) {
+        if (data.length > 0 && !user) {
           setSelectedRequester(data[0]);
         }
       } catch (err: any) {
@@ -52,7 +52,7 @@ export const RequesterSelection = ({ onContinue }: { onContinue: () => void }) =
             <label className="form-label" style={{ fontWeight: 600 }}>Development Requester <span className="text-danger">*</span></label>
             <select 
               className="form-select" 
-              value={selectedRequester?.id || ''} 
+              value={user?.id || ''} 
               onChange={handleChange}
               aria-label="Development Requester"
             >

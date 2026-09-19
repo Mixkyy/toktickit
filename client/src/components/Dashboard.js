@@ -1,8 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { useRequester } from '../context/RequesterContext.js';
+import { useAuth } from '../context/AuthContext.js';
 export const Dashboard = ({ onCreateTicket, onViewTicket }) => {
-    const { selectedRequester } = useRequester();
+    const { user } = useAuth();
     const [tickets, setTickets] = useState([]);
     const [categories, setCategories] = useState([]);
     const [statusFilter, setStatusFilter] = useState('');
@@ -17,7 +17,7 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }) => {
     const itemsPerPage = 5;
     useEffect(() => {
         // Fetch categories for the filter dropdown
-        fetch('http://localhost:3000/api/categories')
+        fetch('/api/categories')
             .then(res => res.json())
             .then(data => setCategories(data))
             .catch(err => console.error('Failed to load categories', err));
@@ -33,9 +33,9 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }) => {
                     queryParams.append('categoryId', categoryFilter);
                 if (searchTerm)
                     queryParams.append('search', searchTerm);
-                const res = await fetch(`http://localhost:3000/api/tickets?${queryParams.toString()}`, {
+                const res = await fetch(`/api/tickets?${queryParams.toString()}`, {
                     headers: {
-                        'X-Requester-Id': selectedRequester?.id.toString() || ''
+                        'X-Requester-Id': user?.id.toString() || ''
                     }
                 });
                 if (!res.ok)
@@ -55,7 +55,7 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }) => {
             fetchTickets();
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [statusFilter, categoryFilter, searchTerm, selectedRequester]);
+    }, [statusFilter, categoryFilter, searchTerm, user]);
     // Derived state for sorting and pagination
     const sortedTickets = [...tickets].sort((a, b) => {
         let aVal = a[sortField];

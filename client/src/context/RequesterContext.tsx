@@ -7,17 +7,17 @@ export interface Requester {
 }
 
 interface RequesterContextType {
-  selectedRequester: Requester | null;
+  user: Requester | null;
   setSelectedRequester: (requester: Requester | null) => void;
 }
 
 const RequesterContext = createContext<RequesterContextType | undefined>(undefined);
 
 export const RequesterProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedRequester, setSelectedRequester] = useState<Requester | null>(null);
+  const [user, setSelectedRequester] = useState<Requester | null>(null);
 
   return (
-    <RequesterContext.Provider value={{ selectedRequester, setSelectedRequester }}>
+    <RequesterContext.Provider value={{ user, setSelectedRequester }}>
       {children}
     </RequesterContext.Provider>
   );

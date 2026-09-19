@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
 import commentsRouter from "./routes/comments.js";
+import usersRouter from "./routes/users.js";
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -55,6 +56,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/staff', staffRouter);
 app.use('/api/tickets/:id/comments', commentsRouter);
+app.use('/api/users', usersRouter);
 
 
 // ---------------------------------------------------------------------------
