@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 
 interface StaffTicket {
   id: number;
@@ -21,6 +22,7 @@ interface PaginatedResponse {
 }
 
 export function TicketQueue({ onViewTicket }: { onViewTicket: (id: number) => void }) {
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<StaffTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,20 +44,20 @@ export function TicketQueue({ onViewTicket }: { onViewTicket: (id: number) => vo
         ...(categoryId && { categoryId }),
       });
 
-      const res = await fetch(`http://localhost:3000/api/staff/tickets?${query.toString()}`, {
+      const res = await fetch(`/api/staff/tickets?${query.toString()}`, {
         // We include credentials for the http-only cookie (even if AuthContext is missing in this stub, it will send if it exists)
         credentials: "omit", // Using omit for now to avoid CORS cookie issues if not fully configured, though in a real app it should be 'include'. Actually, we'll try 'include' since it's the right way.
       });
 
       // Override credentials for local dev if AuthContext was bypassed
-      const authRes = await fetch(`http://localhost:3000/api/staff/tickets?${query.toString()}`, {
+      const authRes = await fetch(`/api/staff/tickets?${query.toString()}`, {
         headers: {
-          'Authorization': `Bearer temp` // Just a fallback stub since we are testing locally without the full AuthContext
+           // Just a fallback stub since we are testing locally without the full AuthContext
         }
       });
       
       // Wait, we can just use the GET tickets from Lab 2 api for now to mock the table if the auth fails, but let's use the real one.
-      const realRes = await fetch(`http://localhost:3000/api/staff/tickets?${query.toString()}`);
+      const realRes = await fetch(`/api/staff/tickets?${query.toString()}`);
       
       if (!realRes.ok) {
         throw new Error("Failed to fetch tickets");

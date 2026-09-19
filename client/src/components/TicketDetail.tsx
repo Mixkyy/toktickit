@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useRequester } from "../context/RequesterContext.js";
+import { useAuth } from "../context/AuthContext.js";
 
 interface Attachment {
   id: number;
@@ -33,8 +33,8 @@ interface CommentData {
   author: { id: number; name: string; role: string };
 }
 
-export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, isStaff?: boolean, onBack: () => void }) {
-  const { selectedRequester } = useRequester();
+export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, isStaff?: boolean, onBack: () => void }) => {
+  const { user } = useAuth();
   const [ticket, setTicket] = useState<TicketDetailData | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
   
@@ -49,10 +49,10 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTicket = async () => {
-    if (!selectedRequester) return;
+    if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/tickets/${ticketId}`, {
-        headers: { 'X-Requester-Id': String(selectedRequester.id) }
+      const res = await fetch(`/api/tickets/${ticketId}`, {
+        headers: { 'X-Requester-Id': String(user.id) }
       });
       if (!res.ok) throw new Error("Failed to load ticket details");
       const data = await res.json();
@@ -65,11 +65,11 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
   };
 
   const fetchComments = async () => {
-    if (!selectedRequester) return;
+    if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/tickets/${ticketId}/comments`, {
+      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
         // Fallback for UI mock:
-        headers: { 'Authorization': `Bearer temp` }
+        headers: {  }
       });
       if (res.ok) {
         const data = await res.json();
@@ -83,13 +83,13 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
   useEffect(() => {
     fetchTicket();
     fetchComments();
-  }, [ticketId, selectedRequester]);
+  }, [ticketId, user]);
 
   const updateTicket = async (field: string, value: string | number | null) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/staff/tickets/${ticketId}`, {
+      const res = await fetch(`/api/staff/tickets/${ticketId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer temp` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value })
       });
       if (res.ok) {
@@ -101,8 +101,8 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
   };
 
   const handleClaim = () => {
-    if (!selectedRequester) return;
-    updateTicket('ownerId', selectedRequester.id);
+    if (!user) return;
+    updateTicket('ownerId', user.id);
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => updateTicket('currentStatus', e.target.value);
@@ -113,9 +113,9 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
     if (!newComment.trim()) return;
     setSubmittingComment(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/tickets/${ticketId}/comments`, {
+      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer temp` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newComment, isInternal })
       });
       if (res.ok) {
@@ -134,15 +134,15 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !selectedRequester) return;
+    if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) return alert("File size exceeds 5MB limit");
     
     const formData = new FormData();
     formData.append("attachment", file);
     setUploading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/tickets/${ticketId}/attachments`, {
-        method: "POST", headers: { 'X-Requester-Id': String(selectedRequester.id) }, body: formData
+      const res = await fetch(`/api/tickets/${ticketId}/attachments`, {
+        method: "POST", headers: { 'X-Requester-Id': String(user.id) }, body: formData
       });
       if (!res.ok) throw new Error("Upload failed");
       await fetchTicket();
@@ -151,9 +151,9 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
   };
 
   const handleDownload = async (attachmentId: number, fileName: string) => {
-    if (!selectedRequester) return;
+    if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/attachments/${attachmentId}/download`, { headers: { 'X-Requester-Id': String(selectedRequester.id) }});
+      const res = await fetch(`/api/attachments/${attachmentId}/download`, { headers: { 'X-Requester-Id': String(user.id) }});
       if (!res.ok) throw new Error("Failed to download");
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -163,12 +163,12 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
   };
 
   const handleRemove = async (attachmentId: number) => {
-    if (!selectedRequester) return;
+    if (!user) return;
     const reason = window.prompt("Reason for removal:");
     if (!reason || reason.trim() === "") return alert("Reason required.");
     try {
-      const res = await fetch(`http://localhost:3000/api/attachments/${attachmentId}`, {
-        method: "DELETE", headers: { 'X-Requester-Id': String(selectedRequester.id), 'Content-Type': 'application/json' },
+      const res = await fetch(`/api/attachments/${attachmentId}`, {
+        method: "DELETE", headers: { 'X-Requester-Id': String(user.id), 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason })
       });
       if (!res.ok) throw new Error("Failed to remove");
@@ -260,6 +260,31 @@ export function TicketDetail({ ticketId, isStaff, onBack }: { ticketId: number, 
             ))}
             {comments.length === 0 && <p className="text-muted fst-italic">No comments yet.</p>}
           </div>
+
+          {!isStaff && ticket.currentStatus !== 'Resolved' && ticket.currentStatus !== 'Closed' && (
+            <div className="mb-4">
+              <button 
+                className="btn btn-outline-success"
+                onClick={async () => {
+                  if (window.confirm("Mark this problem as apparently resolved?")) {
+                    setSubmittingComment(true);
+                    try {
+                      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: "The requester has indicated that the problem appears to be resolved.", isInternal: false })
+                      });
+                      if (res.ok) fetchComments();
+                    } finally {
+                      setSubmittingComment(false);
+                    }
+                  }
+                }}
+              >
+                Problem Appears Resolved
+              </button>
+            </div>
+          )}
 
           <form onSubmit={submitComment} className="p-3 bg-light rounded border">
             <div className="mb-2">

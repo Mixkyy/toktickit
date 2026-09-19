@@ -85,6 +85,11 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
     return res.status(400).json({ error: 'Current and new passwords are required' });
   }
 
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  if (!passwordRegex.test(newPassword)) {
+    return res.status(400).json({ error: 'Password does not meet the security requirements' });
+  }
+
   try {
     const user = await prisma.user.findUnique({ where: { id: reqUser.id } });
     if (!user) return res.status(404).json({ error: 'User not found' });
