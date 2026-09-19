@@ -4,6 +4,11 @@ import { getPrisma } from "./prisma.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import cookieParser from "cookie-parser";
+import authRouter from "./routes/auth.js";
+import staffRouter from "./routes/staff.js";
+import commentsRouter from "./routes/comments.js";
+import usersRouter from "./routes/users.js";
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -46,6 +51,13 @@ export const app = express();
 
 app.use(cors());          // already wired: lets the Vite dev server call this API
 app.use(express.json());
+app.use(cookieParser());
+
+app.use('/api/auth', authRouter);
+app.use('/api/staff', staffRouter);
+app.use('/api/tickets/:id/comments', commentsRouter);
+app.use('/api/users', usersRouter);
+
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check
@@ -95,8 +107,8 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 app.get("/api/requesters", async (_req: Request, res: Response) => {
   try {
     const prisma = getPrisma();
-    const requesters = await prisma.requesterUser.findMany({
-      where: { isActive: true },
+    const requesters = await prisma.user.findMany({
+      where: { isActive: true, role: 'REQUESTER' },
       select: {
         id: true,
         name: true,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRequester } from '../context/RequesterContext.js';
+import { useAuth } from '../context/AuthContext.js';
 import { Category } from '../api.js';
 
 interface Ticket {
@@ -13,7 +13,7 @@ interface Ticket {
 }
 
 export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: () => void, onViewTicket: (id: number) => void }) => {
-  const { selectedRequester } = useRequester();
+  const { user } = useAuth();
   
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -33,7 +33,7 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
 
   useEffect(() => {
     // Fetch categories for the filter dropdown
-    fetch('http://localhost:3000/api/categories')
+    fetch('/api/categories')
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error('Failed to load categories', err));
@@ -48,9 +48,9 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
         if (categoryFilter) queryParams.append('categoryId', categoryFilter);
         if (searchTerm) queryParams.append('search', searchTerm);
 
-        const res = await fetch(`http://localhost:3000/api/tickets?${queryParams.toString()}`, {
+        const res = await fetch(`/api/tickets?${queryParams.toString()}`, {
           headers: {
-            'X-Requester-Id': selectedRequester?.id.toString() || ''
+            'X-Requester-Id': user?.id.toString() || ''
           }
         });
         
@@ -70,7 +70,7 @@ export const Dashboard = ({ onCreateTicket, onViewTicket }: { onCreateTicket: ()
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [statusFilter, categoryFilter, searchTerm, selectedRequester]);
+  }, [statusFilter, categoryFilter, searchTerm, user]);
 
   // Derived state for sorting and pagination
   const sortedTickets = [...tickets].sort((a, b) => {
