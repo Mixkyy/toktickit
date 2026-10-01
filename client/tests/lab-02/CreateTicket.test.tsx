@@ -1,10 +1,15 @@
+import { vi } from "vitest";
+vi.mock("../../src/context/AuthContext", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, useAuth: () => ({ user: { id: 1, name: "Test", role: "REQUESTER" }, loading: false }) };
+});
 // @ts-nocheck
 
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CreateTicket } from '../../src/components/CreateTicket.js';
-import { RequesterProvider } from '../../src/context/RequesterContext.js';
+import { AuthProvider } from '../../src/context/AuthContext';
 import { vi } from 'vitest';
 
 // Mock fetch
@@ -33,9 +38,9 @@ vi.spyOn(global, 'fetch').mockImplementation((url) => {
 describe('CreateTicket Component Validation', () => {
   it('shows validation errors when submitting empty form', async () => {
     render(
-      <RequesterProvider>
+      <AuthProvider>
         <CreateTicket onCancel={() => {}} />
-      </RequesterProvider>
+      </AuthProvider>
     );
 
     const submitBtn = screen.getByText('Submit Ticket');
@@ -49,9 +54,9 @@ describe('CreateTicket Component Validation', () => {
 
   it('shows error if summary is too long', async () => {
     render(
-      <RequesterProvider>
+      <AuthProvider>
         <CreateTicket onCancel={() => {}} />
-      </RequesterProvider>
+      </AuthProvider>
     );
 
     const summaryInput = screen.getByPlaceholderText(/Brief summary of the issue/i);

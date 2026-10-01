@@ -1,3 +1,8 @@
+import { vi } from "vitest";
+vi.mock("../../src/context/AuthContext", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, useAuth: () => ({ user: { id: 1, name: "Test", role: "REQUESTER" }, loading: false }) };
+});
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "../../src/App.js";
@@ -8,7 +13,7 @@ globalThis.fetch = vi.fn() as any;
 
 // Mock the RequesterContext so App doesn't crash when rendering outside main.tsx
 vi.mock("../../src/context/RequesterContext", () => ({
-  RequesterProvider: ({ children }: any) => <>{children}</>,
+  AuthProvider: ({ children }: any) => <>{children}</>,
   useRequester: () => ({
     requester: null,
     setRequester: vi.fn(),
