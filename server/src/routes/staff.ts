@@ -107,4 +107,42 @@ router.put('/tickets/:id', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/tickets/:id', async (req: Request, res: Response) => {
+  const ticketId = parseInt(req.params.id);
+  if (isNaN(ticketId)) return res.status(400).json({ error: 'Invalid ticket ID' });
+
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: { select: { id: true, name: true } },
+        relatedSystem: { select: { id: true, name: true } },
+        owner: { select: { id: true, name: true, email: true } },
+        requester: { select: { id: true, name: true, email: true } },
+        attachments: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.status(200).json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch ticket details' });
+  }
+});
+
+router.get('/staff-members', async (req: Request, res: Response) => {
+  try {
+    const staff = await prisma.user.findMany({
+      where: { role: 'IT_STAFF', isActive: true },
+      select: { id: true, name: true, email: true },
+      orderBy: { name: 'asc' }
+    });
+    res.status(200).json(staff);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch staff members' });
+  }
+});
+
 export default router;

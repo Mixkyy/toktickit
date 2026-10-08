@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => {
-        if (data.id) setUser(data);
+        if (data.user) setUser(data.user);
       })
       .catch(() => {})
       .finally(() => setLoading(false));

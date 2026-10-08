@@ -33,3 +33,13 @@
 - **Layout:** A simple list/grid of users showing Name, Email, Role, and Status (Active/Inactive).
 - **Controls:** "Create User" button opens a modal or new page.
 - **Form:** Fields for Full Name, Email, Role (Dropdown), Status Toggle, and a checkbox to "Require Password Change on Next Login" along with a temporary password input.
+
+## 7. Visual Checklist
+- [x] **Design Consistency:** Uses the established Zen Green color palette (#006B3C for primary, #0B7A46 for secondary).
+- [x] **Role Navigation:** Navigation bar correctly updates to show only permitted pages based on the user's role.
+- [x] **Badges:** Consistent styling for Roles, Statuses (e.g., green for resolved, yellow for pending), and IT Priorities.
+- [x] **Editable/Read-Only:** Clear visual distinction between fields the user can edit vs. read-only fields (e.g., grayed out background).
+- [x] **Validation Placement:** Error messages appear directly underneath the offending input field in dark red text.
+- [x] **Focus States:** Input fields show a clear focus ring for keyboard accessibility.
+- [x] **Clipping/Overlap:** No text clipping or overlapping elements on any screen size.
+- [x] **Horizontal Overflow:** Mobile tables collapse into cards or scroll horizontally without breaking the main page layout width.

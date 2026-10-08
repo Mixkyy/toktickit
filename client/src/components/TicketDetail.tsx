@@ -37,6 +37,7 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
   const { user } = useAuth();
   const [ticket, setTicket] = useState<TicketDetailData | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
+  const [staffMembers, setStaffMembers] = useState<{id: number, name: string}[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,7 +52,8 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
   const fetchTicket = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/tickets/${ticketId}`, {
+      const url = isStaff ? `/api/staff/tickets/${ticketId}` : `/api/tickets/${ticketId}`;
+      const res = await fetch(url, {
         headers: { 'X-Requester-Id': String(user.id) }
       });
       if (!res.ok) throw new Error("Failed to load ticket details");
@@ -83,7 +85,13 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
   useEffect(() => {
     fetchTicket();
     fetchComments();
-  }, [ticketId, user]);
+    if (isStaff) {
+      fetch('/api/staff/staff-members')
+        .then(res => res.json())
+        .then(data => setStaffMembers(data || []))
+        .catch(console.error);
+    }
+  }, [ticketId, user, isStaff]);
 
   const updateTicket = async (field: string, value: string | number | null) => {
     try {
@@ -103,6 +111,11 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
   const handleClaim = () => {
     if (!user) return;
     updateTicket('ownerId', user.id);
+  };
+
+  const handleOwnerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    updateTicket('ownerId', val ? parseInt(val) : null);
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => updateTicket('currentStatus', e.target.value);
@@ -226,7 +239,7 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
                   </div>
                   <div>
                     {!att.isRemoved ? (
-                      <><button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleDownload(att.id, att.fileName)}>Download</button><button className="btn btn-sm btn-outline-danger" onClick={() => handleRemove(att.id)}>Remove</button></>
+                      <><button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleDownload(att.id, att.fileName)}>Download</button>{!isStaff && <button className="btn btn-sm btn-outline-danger" onClick={() => handleRemove(att.id)}>Remove</button>}</>
                     ) : <button className="btn btn-sm btn-secondary" disabled>Unavailable</button>}
                   </div>
                 </li>
@@ -234,7 +247,7 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
             </ul>
           ) : <p className="text-muted fst-italic">No active attachments.</p>}
 
-          {ticket.attachments.filter(a => !a.isRemoved).length < 5 && (
+          {!isStaff && ticket.attachments.filter(a => !a.isRemoved).length < 5 && (
             <div className="p-3 rounded border mb-4" style={{ backgroundColor: '#F5F7F6' }}>
               <label className="form-label fw-bold small text-muted">Upload New Attachment</label>
               <input type="file" className="form-control" ref={fileInputRef} accept=".jpg,.jpeg,.png,.webp,.pdf" onChange={handleUpload} disabled={uploading}/>
@@ -311,8 +324,17 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
               <div className="mb-3">
                 <label className="form-label fw-bold small text-muted text-uppercase">Owner</label>
                 <div className="d-flex align-items-center">
-                  <span className="me-2">{ticket.owner?.name || 'Unassigned'}</span>
-                  {!ticket.owner && <button className="btn btn-sm btn-outline-primary" onClick={handleClaim}>Claim Ticket</button>}
+                  <select 
+                    className="form-select form-select-sm me-2" 
+                    value={ticket.owner?.id || ''} 
+                    onChange={handleOwnerChange}
+                  >
+                    <option value="">Unassigned</option>
+                    {staffMembers.map(staff => (
+                      <option key={staff.id} value={staff.id}>{staff.name}</option>
+                    ))}
+                  </select>
+                  {!ticket.owner && <button className="btn btn-sm btn-outline-primary text-nowrap" onClick={handleClaim}>Claim</button>}
                 </div>
               </div>
 
