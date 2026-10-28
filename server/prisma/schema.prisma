@@ -48,6 +48,7 @@ model User {
   ticketsSubmitted       Ticket[] @relation("TicketRequester")
   ticketsOwned           Ticket[] @relation("TicketOwner")
   comments               Comment[]
+  actionsTaken           ActionTaken[]
 }
 
 model RelatedSystem {
@@ -69,6 +70,7 @@ model Ticket {
   requestedPriority String
   itPriority        IT_Priority?
   currentStatus     String   @default("New")
+  version           Int      @default(1)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -78,6 +80,7 @@ model Ticket {
   relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
   attachments   Attachment[]
   comments      Comment[]
+  actions       ActionTaken[]
 }
 
 model Attachment {
@@ -104,4 +107,24 @@ model Comment {
 
   ticket Ticket @relation(fields: [ticketId], references: [id])
   author User   @relation(fields: [authorId], references: [id])
+}
+
+model ActionTaken {
+  id               Int      @id @default(autoincrement())
+  ticketId         Int
+  actionDate       DateTime @default(now())
+  description      String
+  result           String
+  performedById    Int
+  followUpRequired Boolean  @default(false)
+  followUpNote     String?
+  attachmentNotes  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  performedBy User   @relation(fields: [performedById], references: [id])
+
+  @@index([ticketId])
+  @@index([performedById])
 }
