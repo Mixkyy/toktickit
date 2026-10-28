@@ -47,7 +47,7 @@ describe('TicketWorkflow Component (Lab 4 / Issue #50)', () => {
   });
 
   it('renders only permitted status transitions for a "New" ticket', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation((url: any) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url: any) => {
       const urlStr = url.toString();
       if (urlStr.includes('/api/staff/tickets/1')) {
         return Promise.resolve({
@@ -89,7 +89,7 @@ describe('TicketWorkflow Component (Lab 4 / Issue #50)', () => {
   });
 
   it('renders only permitted status transitions for a "Resolved" ticket', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation((url: any) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url: any) => {
       const urlStr = url.toString();
       if (urlStr.includes('/api/staff/tickets/2')) {
         return Promise.resolve({
@@ -119,7 +119,7 @@ describe('TicketWorkflow Component (Lab 4 / Issue #50)', () => {
 
   it('sends ticket version and handles 409 Conflict with conflict alert banner', async () => {
     let fetchTicketCallCount = 0;
-    vi.spyOn(global, 'fetch').mockImplementation((url: any, opts: any) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url: any, opts: any) => {
       const urlStr = url.toString();
       if (urlStr.includes('/api/staff/tickets/1') && opts?.method === 'PUT') {
         return Promise.resolve({

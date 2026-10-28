@@ -55,7 +55,7 @@ describe('ActionsTakenSection Component (Lab 4 / Issue #49)', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(global, 'fetch').mockImplementation((url: any) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url: any) => {
       const urlStr = url.toString();
       if (urlStr.includes('/api/tickets/1/actions')) {
         return Promise.resolve({
@@ -143,7 +143,7 @@ describe('ActionsTakenSection Component (Lab 4 / Issue #49)', () => {
   });
 
   it('submits valid Action Taken to POST /api/tickets/:id/actions', async () => {
-    const fetchSpy = vi.spyOn(global, 'fetch').mockImplementation((url: any, opts: any) => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation((url: any, opts: any) => {
       const urlStr = url.toString();
       if (opts?.method === 'POST') {
         return Promise.resolve({
@@ -203,7 +203,7 @@ describe('ActionsTakenSection Component (Lab 4 / Issue #49)', () => {
   });
 
   it('allows IT Staff to edit an existing action via PUT /api/tickets/:id/actions/:actionId', async () => {
-    const fetchSpy = vi.spyOn(global, 'fetch').mockImplementation((url: any, opts: any) => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation((url: any, opts: any) => {
       if (opts?.method === 'PUT') {
         return Promise.resolve({
           ok: true,
