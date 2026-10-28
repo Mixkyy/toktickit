@@ -121,6 +121,12 @@ router.get('/tickets/:id', async (req: Request, res: Response) => {
         requester: { select: { id: true, name: true, email: true } },
         attachments: {
           orderBy: { createdAt: 'desc' }
+        },
+        actions: {
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } }
+          },
+          orderBy: { actionDate: 'asc' }
         }
       }
     });
