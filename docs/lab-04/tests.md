@@ -9,7 +9,7 @@ The test strategy focuses on verifying the final workflow features: Actions Take
 |---|---|---|---|---|---|---|
 | API-03 | API | AC-01 | Create a valid Actions Taken | Created under the correct Ticket and actor | server/tests/lab-04/actions-taken.api.test.ts | Pass |
 | API-04 | API | AC-04 | Create Action with Follow-Up missing | 400 Bad Request returned | server/tests/lab-04/actions-taken.api.test.ts | Pass |
-| API-05 | API | FR-05 | Concurrent update with stale version | 409 Conflict returned | server/tests/lab-04/ticket-workflow.api.test.ts | Pending |
+| API-05 | API | FR-05 | Concurrent update with stale version | 409 Conflict returned | server/tests/lab-04/ticket-workflow.api.test.ts | Pass |
 | API-06 | API | AC-02 | Requester Dashboard metrics isolation | Returns only metrics for tickets owned by Requester | server/tests/lab-04/requester-dashboard.api.test.ts | Pending |
 | API-07 | API | FR-07 | IT Staff Dashboard metrics | Returns accurate system-wide metrics and user's assigned counts | server/tests/lab-04/staff-dashboard.api.test.ts | Pending |
 | UI-01 | UI | FR-06 | Requester Dashboard Rendering | Displays metric cards and recent tickets table | client/tests/lab-04/RequesterDashboard.test.tsx | Pending |

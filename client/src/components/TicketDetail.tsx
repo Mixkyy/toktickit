@@ -19,12 +19,24 @@ interface TicketDetailData {
   requestedPriority: string;
   itPriority?: string;
   currentStatus: string;
+  version: number;
   createdAt: string;
   category: { name: string };
   relatedSystem: { name: string };
   owner?: { id: number; name: string };
   attachments: Attachment[];
 }
+
+const PERMITTED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  'New': ['Open', 'In Progress', 'Cancelled'],
+  'Open': ['In Progress', 'Waiting for Requester', 'Resolved', 'Cancelled'],
+  'In Progress': ['Waiting for Requester', 'Resolved', 'Cancelled'],
+  'Waiting for Requester': ['In Progress', 'Resolved', 'Cancelled'],
+  'Resolved': ['Closed', 'Reopened'],
+  'Closed': ['Reopened'],
+  'Reopened': ['In Progress', 'Resolved', 'Cancelled'],
+  'Cancelled': ['Reopened'],
+};
 
 interface CommentData {
   id: number;
@@ -42,6 +54,7 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [conflictError, setConflictError] = useState("");
   const [uploading, setUploading] = useState(false);
   
   const [newComment, setNewComment] = useState("");
@@ -60,6 +73,7 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
       if (!res.ok) throw new Error("Failed to load ticket details");
       const data = await res.json();
       setTicket(data);
+      setConflictError("");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -70,10 +84,7 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
   const fetchComments = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
-        // Fallback for UI mock:
-        headers: {  }
-      });
+      const res = await fetch(`/api/tickets/${ticketId}/comments`);
       if (res.ok) {
         const data = await res.json();
         setComments(data);
@@ -92,18 +103,35 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
         .then(data => setStaffMembers(data || []))
         .catch(console.error);
     }
-  }, [ticketId, user, isStaff]);
+  }, [ticketId, user?.id, isStaff]);
 
   const updateTicket = async (field: string, value: string | number | null) => {
     try {
+      setConflictError("");
+      const payload: any = {
+        [field]: value,
+        version: ticket?.version,
+      };
+
       const res = await fetch(`/api/staff/tickets/${ticketId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: value })
+        body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        fetchTicket(); // refresh data
+
+      if (res.status === 409) {
+        const data = await res.json();
+        setConflictError(data.error || "Conflict: This ticket has been modified by another user.");
+        return;
       }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to update ticket.");
+        return;
+      }
+
+      fetchTicket(); // refresh data with new version and status
     } catch (err) {
       alert("Failed to update ticket.");
     }
@@ -207,6 +235,29 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
       </div>
 
       <div className="card-body p-4 row">
+        {conflictError && (
+          <div
+            className="col-12 alert alert-warning border border-warning d-flex justify-content-between align-items-center mb-4"
+            role="alert"
+            data-testid="conflict-alert-banner"
+          >
+            <div>
+              <strong>Concurrency Conflict: </strong>
+              <span>{conflictError}</span>
+            </div>
+            <button
+              className="btn btn-sm btn-outline-dark ms-3 text-nowrap"
+              onClick={() => {
+                setConflictError("");
+                fetchTicket();
+              }}
+              data-testid="refresh-conflict-btn"
+            >
+              Refresh Ticket
+            </button>
+          </div>
+        )}
+
         <div className={isStaff ? "col-md-8" : "col-12"}>
           <div className="row mb-4">
             <div className="col-md-4 mb-3">
@@ -345,11 +396,18 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
 
               <div className="mb-3">
                 <label className="form-label fw-bold small text-muted text-uppercase">Status</label>
-                <select className="form-select form-select-sm" value={ticket.currentStatus} onChange={handleStatusChange}>
-                  <option value="New">New</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
+                <select 
+                  className="form-select form-select-sm" 
+                  value={ticket.currentStatus} 
+                  onChange={handleStatusChange}
+                  data-testid="status-select"
+                >
+                  {Array.from(new Set([
+                    ticket.currentStatus,
+                    ...(PERMITTED_STATUS_TRANSITIONS[ticket.currentStatus] || [])
+                  ])).map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
                 </select>
               </div>
 
