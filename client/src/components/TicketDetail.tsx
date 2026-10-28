@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext.js";
+import { ActionsTakenSection } from "./ActionsTakenSection.js";
 
 interface Attachment {
   id: number;
@@ -255,6 +256,10 @@ export const TicketDetail = ({ ticketId, isStaff, onBack }: { ticketId: number, 
             </div>
           )}
           
+          <hr className="my-4" />
+          
+          <ActionsTakenSection ticketId={ticketId} isStaff={isStaff} />
+
           <hr className="my-4" />
           
           <h4 style={{ color: '#006B3C' }} className="mb-3">Discussion</h4>
