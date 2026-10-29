@@ -9,6 +9,8 @@ import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
 import commentsRouter from "./routes/comments.js";
 import usersRouter from "./routes/users.js";
+import actionsRouter from "./routes/actions.js";
+import dashboardsRouter from "./routes/dashboards.js";
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -56,7 +58,9 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/staff', staffRouter);
 app.use('/api/tickets/:id/comments', commentsRouter);
+app.use('/api/tickets/:id/actions', actionsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/dashboards', dashboardsRouter);
 
 
 // ---------------------------------------------------------------------------
@@ -258,6 +262,106 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Failed to fetch ticket" });
+  }
+});
+
+app.put("/api/tickets/:id", async (req: Request, res: Response) => {
+  const ticketId = parseInt(req.params.id, 10);
+  if (isNaN(ticketId)) {
+    return res.status(400).json({ error: "Invalid ticket ID" });
+  }
+
+  // Check auth via cookie or bearer token
+  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+  let authUser: any = null;
+  if (token) {
+    try {
+      const { verifyToken } = await import("./utils/auth.js");
+      authUser = verifyToken(token);
+    } catch (e) {}
+  }
+
+  if (!authUser) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const { currentStatus, version, itPriority, ownerId } = req.body;
+  const prisma = getPrisma();
+
+  try {
+    const existingTicket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: true,
+        relatedSystem: true,
+        owner: { select: { id: true, name: true, email: true } },
+        requester: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (!existingTicket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Role-specific resolution gate
+    if (authUser.role === 'REQUESTER') {
+      if (existingTicket.requesterId !== authUser.id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+      }
+      if (currentStatus === 'Resolved' || currentStatus === 'Closed') {
+        return res.status(403).json({
+          error: "Forbidden: Requesters cannot formally resolve or close tickets.",
+        });
+      }
+    }
+
+    // Optimistic Concurrency Control
+    if (version !== undefined && version !== null) {
+      const parsedVersion = parseInt(version, 10);
+      if (parsedVersion !== existingTicket.version) {
+        return res.status(409).json({
+          error: "Conflict: This ticket has been modified by another user. Please refresh and try again.",
+          currentVersion: existingTicket.version,
+        });
+      }
+    }
+
+    // Status transition matrix
+    const { PERMITTED_STATUS_TRANSITIONS } = await import("./routes/staff.js");
+    if (currentStatus !== undefined && currentStatus !== existingTicket.currentStatus) {
+      const allowed = PERMITTED_STATUS_TRANSITIONS[existingTicket.currentStatus] || [];
+      if (!allowed.includes(String(currentStatus))) {
+        return res.status(400).json({
+          error: `Invalid status transition from "${existingTicket.currentStatus}" to "${currentStatus}". Permitted transitions: ${allowed.join(', ') || 'None'}.`,
+        });
+      }
+    }
+
+    const dataToUpdate: any = {
+      version: { increment: 1 },
+    };
+
+    if (currentStatus !== undefined) dataToUpdate.currentStatus = String(currentStatus);
+    if (itPriority !== undefined) dataToUpdate.itPriority = String(itPriority);
+    if (ownerId !== undefined) {
+      dataToUpdate.owner = ownerId === null ? { disconnect: true } : { connect: { id: parseInt(ownerId) } };
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: dataToUpdate,
+      include: {
+        category: true,
+        relatedSystem: true,
+        owner: { select: { id: true, name: true, email: true } },
+        requester: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Failed to update ticket" });
   }
 });
 

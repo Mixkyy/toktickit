@@ -1,9 +1,9 @@
-import { vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
 vi.mock("../../src/context/AuthContext", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<any>();
   return { ...actual, useAuth: () => ({ user: { id: 1, name: "Test", role: "REQUESTER" }, loading: false }) };
 });
-import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";

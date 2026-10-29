@@ -70,16 +70,63 @@ router.get('/tickets', async (req: Request, res: Response) => {
   }
 });
 
+export const PERMITTED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  'New': ['Open', 'In Progress', 'Cancelled'],
+  'Open': ['In Progress', 'Waiting for Requester', 'Resolved', 'Cancelled'],
+  'In Progress': ['Waiting for Requester', 'Resolved', 'Cancelled'],
+  'Waiting for Requester': ['In Progress', 'Resolved', 'Cancelled'],
+  'Resolved': ['Closed', 'Reopened'],
+  'Closed': ['Reopened'],
+  'Reopened': ['In Progress', 'Resolved', 'Cancelled'],
+  'Cancelled': ['Reopened'],
+};
+
 router.put('/tickets/:id', async (req: Request, res: Response) => {
   const ticketId = parseInt(req.params.id);
-  const { ownerId, currentStatus, itPriority } = req.body;
+  const { ownerId, currentStatus, itPriority, version } = req.body;
 
   if (isNaN(ticketId)) {
     return res.status(400).json({ error: 'Invalid ticket ID' });
   }
 
   try {
-    const dataToUpdate: Prisma.TicketUpdateInput = {};
+    const existingTicket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: { select: { id: true, name: true } },
+        owner: { select: { id: true, name: true, email: true } },
+        requester: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    if (!existingTicket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    // 1. Optimistic Concurrency Control
+    if (version !== undefined && version !== null) {
+      const parsedVersion = parseInt(version, 10);
+      if (parsedVersion !== existingTicket.version) {
+        return res.status(409).json({
+          error: 'Conflict: This ticket has been modified by another user. Please refresh and try again.',
+          currentVersion: existingTicket.version
+        });
+      }
+    }
+
+    // 2. Status Transition Matrix Enforcement
+    if (currentStatus !== undefined && currentStatus !== existingTicket.currentStatus) {
+      const allowed = PERMITTED_STATUS_TRANSITIONS[existingTicket.currentStatus] || [];
+      if (!allowed.includes(String(currentStatus))) {
+        return res.status(400).json({
+          error: `Invalid status transition from "${existingTicket.currentStatus}" to "${currentStatus}". Permitted transitions: ${allowed.join(', ') || 'None'}.`
+        });
+      }
+    }
+
+    const dataToUpdate: Prisma.TicketUpdateInput = {
+      version: { increment: 1 }
+    };
 
     if (ownerId !== undefined) {
       dataToUpdate.owner = ownerId === null ? { disconnect: true } : { connect: { id: parseInt(ownerId) } };
@@ -88,7 +135,7 @@ router.put('/tickets/:id', async (req: Request, res: Response) => {
       dataToUpdate.currentStatus = String(currentStatus);
     }
     if (itPriority !== undefined) {
-      dataToUpdate.itPriority = String(itPriority);
+      dataToUpdate.itPriority = itPriority as any;
     }
 
     const updatedTicket = await prisma.ticket.update({
@@ -97,12 +144,19 @@ router.put('/tickets/:id', async (req: Request, res: Response) => {
       include: {
         category: { select: { id: true, name: true } },
         owner: { select: { id: true, name: true, email: true } },
-        requester: { select: { id: true, name: true, email: true } }
+        requester: { select: { id: true, name: true, email: true } },
+        actions: {
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } }
+          },
+          orderBy: { actionDate: 'asc' }
+        }
       }
     });
 
     res.status(200).json(updatedTicket);
   } catch (error) {
+    console.error('Failed to update ticket:', error);
     res.status(500).json({ error: 'Failed to update ticket' });
   }
 });
@@ -121,6 +175,12 @@ router.get('/tickets/:id', async (req: Request, res: Response) => {
         requester: { select: { id: true, name: true, email: true } },
         attachments: {
           orderBy: { createdAt: 'desc' }
+        },
+        actions: {
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } }
+          },
+          orderBy: { actionDate: 'asc' }
         }
       }
     });

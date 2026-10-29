@@ -1,9 +1,10 @@
+// @ts-nocheck
 import { vi } from "vitest";
+
 vi.mock("../../src/context/AuthContext", async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, useAuth: () => ({ user: { id: 1, name: "Test", role: "REQUESTER" }, loading: false }) };
 });
-// @ts-nocheck
 
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';

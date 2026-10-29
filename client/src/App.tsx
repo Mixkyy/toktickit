@@ -9,8 +9,11 @@ import { Dashboard } from "./components/Dashboard.js";
 import { TicketDetail } from "./components/TicketDetail.js";
 import { TicketQueue } from "./components/TicketQueue.js";
 import { UserManagement } from "./components/UserManagement.js";
+import { RequesterDashboard } from "./components/RequesterDashboard.js";
+import { StaffDashboard } from "./components/StaffDashboard.js";
 
 type UiState = "idle" | "loading" | "success" | "error";
+type ActiveTab = "dashboard" | "my-tickets" | "queue" | "admin";
 
 export default function App() {
   const { user, loading, logout } = useAuth();
@@ -23,13 +26,11 @@ export default function App() {
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   
   // Navigation states
-  const [viewQueue, setViewQueue] = useState(false);
-  const [viewAdmin, setViewAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("dashboard");
 
   // Reset views on logout/login changes
   useEffect(() => {
-    setViewQueue(false);
-    setViewAdmin(false);
+    setActiveTab("dashboard");
     setSelectedTicketId(null);
     setIsCreatingTicket(false);
   }, [user]);
@@ -68,9 +69,15 @@ export default function App() {
   }
 
   if (selectedTicketId !== null) {
-    return <div className="container py-5" style={{ maxWidth: 960 }}>
-      <TicketDetail ticketId={selectedTicketId} isStaff={viewQueue} onBack={() => setSelectedTicketId(null)} />
-    </div>;
+    return (
+      <div className="container py-5" style={{ maxWidth: 960 }}>
+        <TicketDetail
+          ticketId={selectedTicketId}
+          isStaff={['IT_STAFF', 'ADMINISTRATOR'].includes(user.role) && activeTab !== 'my-tickets'}
+          onBack={() => setSelectedTicketId(null)}
+        />
+      </div>
+    );
   }
 
   return (
@@ -95,16 +102,27 @@ export default function App() {
       {/* Role-Based Navigation */}
       <div className="mb-4 d-flex gap-2">
         <button 
-          className={`btn btn-sm ${!viewQueue && !viewAdmin ? 'btn-primary' : 'btn-outline-primary'}`} 
-          onClick={() => { setViewAdmin(false); setViewQueue(false); }}
+          className={`btn btn-sm ${activeTab === 'dashboard' ? 'btn-success text-white' : 'btn-outline-success'}`} 
+          style={activeTab === 'dashboard' ? { backgroundColor: '#006B3C', borderColor: '#006B3C' } : {}}
+          onClick={() => setActiveTab('dashboard')}
+          id="nav-tab-dashboard"
+        >
+          Dashboard
+        </button>
+
+        <button 
+          className={`btn btn-sm ${activeTab === 'my-tickets' ? 'btn-primary' : 'btn-outline-primary'}`} 
+          onClick={() => setActiveTab('my-tickets')}
+          id="nav-tab-my-tickets"
         >
           My Tickets
         </button>
 
         {['IT_STAFF', 'ADMINISTRATOR'].includes(user.role) && (
           <button 
-            className={`btn btn-sm ${viewQueue ? 'btn-success' : 'btn-outline-success'}`} 
-            onClick={() => { setViewAdmin(false); setViewQueue(true); }}
+            className={`btn btn-sm ${activeTab === 'queue' ? 'btn-success' : 'btn-outline-success'}`} 
+            onClick={() => setActiveTab('queue')}
+            id="nav-tab-queue"
           >
             IT Staff Queue
           </button>
@@ -112,22 +130,36 @@ export default function App() {
 
         {user.role === 'ADMINISTRATOR' && (
           <button 
-            className={`btn btn-sm ${viewAdmin ? 'btn-danger' : 'btn-outline-danger'}`} 
-            onClick={() => { setViewQueue(false); setViewAdmin(true); }}
+            className={`btn btn-sm ${activeTab === 'admin' ? 'btn-danger' : 'btn-outline-danger'}`} 
+            onClick={() => setActiveTab('admin')}
+            id="nav-tab-admin"
           >
             User Management
           </button>
         )}
       </div>
 
-      {viewAdmin && user.role === 'ADMINISTRATOR' ? (
+      {activeTab === 'admin' && user.role === 'ADMINISTRATOR' ? (
         <UserManagement />
-      ) : viewQueue && ['IT_STAFF', 'ADMINISTRATOR'].includes(user.role) ? (
+      ) : activeTab === 'queue' && ['IT_STAFF', 'ADMINISTRATOR'].includes(user.role) ? (
         <TicketQueue onViewTicket={(id) => setSelectedTicketId(id)} />
-      ) : (
+      ) : activeTab === 'my-tickets' ? (
         <Dashboard 
           onCreateTicket={() => setIsCreatingTicket(true)} 
           onViewTicket={(id) => setSelectedTicketId(id)}
+        />
+      ) : user.role === 'REQUESTER' ? (
+        <RequesterDashboard
+          onCreateTicket={() => setIsCreatingTicket(true)}
+          onViewTicket={(id) => setSelectedTicketId(id)}
+          onViewAllTickets={() => setActiveTab('my-tickets')}
+        />
+      ) : (
+        <StaffDashboard
+          onCreateTicket={() => setIsCreatingTicket(true)}
+          onViewTicket={(id) => setSelectedTicketId(id)}
+          onNavigateQueue={() => setActiveTab('queue')}
+          onNavigateAdmin={() => setActiveTab('admin')}
         />
       )}
 
