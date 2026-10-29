@@ -31,7 +31,7 @@ router.get('/', async (req: Request, res: Response) => {
     ];
   }
   if (role) {
-    where.role = String(role);
+    where.role = role as any;
   }
 
   try {

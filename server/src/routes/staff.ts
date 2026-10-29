@@ -135,7 +135,7 @@ router.put('/tickets/:id', async (req: Request, res: Response) => {
       dataToUpdate.currentStatus = String(currentStatus);
     }
     if (itPriority !== undefined) {
-      dataToUpdate.itPriority = String(itPriority);
+      dataToUpdate.itPriority = itPriority as any;
     }
 
     const updatedTicket = await prisma.ticket.update({
