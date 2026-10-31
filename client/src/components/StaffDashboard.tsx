@@ -142,7 +142,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
             {isAdmin ? 'Administrator Dashboard' : 'IT Staff Dashboard'}
           </h2>
           <p className="text-muted small mb-0">
-            System queue status, priority allocation, and assigned workload.
+            Welcome back, <strong>{user?.name || 'Staff'}</strong>! Here's what's happening with your queue today.
           </p>
         </div>
         <div className="d-flex gap-2">

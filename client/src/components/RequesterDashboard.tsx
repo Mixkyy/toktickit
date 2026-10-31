@@ -113,7 +113,9 @@ export const RequesterDashboard: React.FC<RequesterDashboardProps> = ({
           <h2 className="h4 mb-1" style={{ color: '#006B3C', fontWeight: 700 }}>
             Requester Dashboard
           </h2>
-          <p className="text-muted small mb-0">Overview of your submitted support requests and status updates.</p>
+          <p className="text-muted small mb-0">
+            Welcome, <strong>{user?.name || 'Requester'}</strong>! Here's the latest on your requests.
+          </p>
         </div>
         <div className="d-flex gap-2">
           <button
